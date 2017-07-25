@@ -17,9 +17,7 @@ This program does the following.
 2) Create an idle process which will be executed when there is nothing
    else to do.
 3) Create a send_signals process that sends a SIGALRM every so often
-
 When run, it should produce the following output (approximately):
-
 $ ./a.out
 in CPU.cc at 247 main pid = 26428
 state:    1
@@ -47,10 +45,8 @@ Terminated
 ---------------------------------------------------------------------------
 Add the following functionality.
 1) Change the NUM_SECONDS to 20.
-
 2) Take any number of arguments for executables, and place each on new_list.
     The executable will not require arguments themselves.
-
 3) When a SIGALRM arrives, scheduler() will be called. It calls
     choose_process which currently always returns the idle process. Do the
     following.
@@ -63,7 +59,6 @@ Add the following functionality.
     c) Modify choose_process to round robin the processes in the processes
         queue that are READY. If no process is READY in the queue, execute
         the idle process.
-
 4) When a SIGCHLD arrives notifying that a child has exited, process_done() is
     called. process_done() currently only prints out the PID and the status.
     a) Add the printing of the information in the PCB including the number
@@ -412,14 +407,28 @@ void read_req (int signum) {
             WRITE("\n");
             std::string messageIn (buf);
 
+            std::string messageOut;
+            std::string processList ("Process List:\n");
             if(messageIn.find("ps")) {
-            	WRITE("---- processes list");
+            	WRITE("---- processes list\n");
+            	for(int p = 0; p <processes.size(); p++) {
+            		PCB* process = processes.front();
+            		const char *name = process->name;
+            		std::string strName (name);
+            		processList.append(strName).append("\n");
+            		processes.push_back(process);
+            		processes.pop_front();
+            	}
+            	messageOut = processList;
             } else if(messageIn.find("system time")) {
             	WRITE("---- system time");
+				char buff[1024];
+				std::string time = itoa(sys_time, buff, 0);
+				messageOut = time;
             }
 
             // respond
-            const char *message = "from the kernel to the process";
+            const char *message = messageOut.c_str();
             write (pipes[K2P][WRITE_END], message, strlen (message));
         }
     }

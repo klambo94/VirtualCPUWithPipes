@@ -37,18 +37,20 @@ int main (int argc, char** argv)
 
 
     sleep(10);
-
+    pid = getpid();
+    ppid = getppid();
     printf ("writing in pid %d\n", pid);
-    const char *message = "system time";
-    write (TO_KERNEL, message, strlen (message));
+    const char *message2 = "system time";
+    write (TO_KERNEL, message2, strlen (message2));
 
     printf ("trapping to %d in pid %d\n", ppid, pid);
     kill (ppid, SIGTRAP);
 
     printf ("reading in pid %d\n", pid);
-    char buf[1024];
-    int num_read = read (FROM_KERNEL, buf, 1023);
-    buf[num_read] = '\0';
-    printf ("process %d read: %s\n", pid, buf);
+    char buf2[1024];
+    int num_read2 = read (FROM_KERNEL, buf2, 1023);
+    buf2[num_read2] = '\0';
+    printf ("process %d read: %s\n", pid, buf2);
+
     exit (0);
 }
