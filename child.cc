@@ -10,6 +10,7 @@
 #include <fcntl.h>
 #include <sys/wait.h>
 #include <time.h>
+#include <sstream>
 
 #define READ 0
 #define WRITE 1
@@ -22,8 +23,14 @@ int main (int argc, char** argv)
     int pid = getpid();
     int ppid = getppid();
 
+    std::string strPid;
+    std::stringstream out;
+    out << pid;
+    strPid = out.str();
+
     printf ("writing in pid %d\n", pid);
-    const char *message = "ps";
+    strPid.append(" ps");
+    const char *message = strPid.c_str();
     write (TO_KERNEL, message, strlen (message));
 
     printf ("trapping to %d in pid %d\n", ppid, pid);
@@ -36,11 +43,19 @@ int main (int argc, char** argv)
     printf ("process %d read: %s\n", pid, buf);
 
 
-    sleep(10);
+    sleep(20);
     pid = getpid();
     ppid = getppid();
+
+    std::string strPid2;
+    std::stringstream out2;
+    out2 << pid;
+    strPid2 = out2.str();
+
     printf ("writing in pid %d\n", pid);
-    const char *message2 = "system time";
+    strPid2.append(" system time");
+    const char *message2 = strPid2.c_str();
+
     write (TO_KERNEL, message2, strlen (message2));
 
     printf ("trapping to %d in pid %d\n", ppid, pid);

@@ -10,7 +10,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <stdlib.h>
-
+#include <sstream>
 /*
 This program does the following.
 1) Create handlers for two signals.
@@ -397,6 +397,7 @@ void read_req (int signum) {
     */
     for (int i = 0; i < NUM_PIPES; i+=2)
     {
+    	PCB* waitingProcess;
         char buf[1024];
         int num_read = read (pipes[P2K][READ_END], buf, 1023);
         if (num_read > 0)
@@ -405,12 +406,29 @@ void read_req (int signum) {
             WRITE("kernel read: ");
             WRITE(buf);
             WRITE("\n");
+
             std::string messageIn (buf);
 
             std::string messageOut;
-            std::string processList ("Process List:\n");
+
+			for(int p = 0; p <processes.size(); p++) {
+				PCB* process = processes.front();
+				int processPid = process->pid;
+				std::stringstream s;
+				std::string strPid;
+				s << processPid;
+				strPid = s.str();
+
+				if(messageIn.find(strPid)) {
+					process->state = WAITING;
+					waitingProcess = process;
+					break;
+				}
+			}
+            
             if(messageIn.find("ps")) {
             	WRITE("---- processes list\n");
+            	std::string processList ("Process List:\n");
             	for(int p = 0; p <processes.size(); p++) {
             		PCB* process = processes.front();
             		const char *name = process->name;
@@ -421,16 +439,17 @@ void read_req (int signum) {
             	}
             	messageOut = processList;
             } else if(messageIn.find("system time")) {
-            	WRITE("---- system time");
-				char buff[1024];
-				std::string time = itoa(sys_time, buff, 0);
-				messageOut = time;
+            	WRITE("---- system time\n");
+				std::stringstream out;
+				out << sys_time;
+				messageOut = out.str();
             }
 
             // respond
             const char *message = messageOut.c_str();
             write (pipes[K2P][WRITE_END], message, strlen (message));
         }
+        waitingProcess->state = READY;
     }
 	
 	WRITE("Leaving read_req\n");
