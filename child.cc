@@ -43,7 +43,7 @@ int main (int argc, char** argv)
     printf ("process %d read: %s\n", pid, buf);
 
 
-    sleep(20);
+    sleep(10);
     pid = getpid();
     ppid = getppid();
 

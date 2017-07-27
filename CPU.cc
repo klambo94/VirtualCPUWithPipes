@@ -397,11 +397,11 @@ void read_req (int signum) {
     */
     for (int i = 0; i < NUM_PIPES; i+=2)
     {
-    	PCB* waitingProcess;
         char buf[1024];
         int num_read = read (pipes[P2K][READ_END], buf, 1023);
         if (num_read > 0)
-        {
+        {	
+        	PCB* waitingProcess;
             buf[num_read] = '\0';
             WRITE("kernel read: ");
             WRITE(buf);
@@ -440,23 +440,26 @@ void read_req (int signum) {
             	messageOut = processList;
             } else if(messageIn.find("system time")) {
             	WRITE("---- system time\n");
+            	string s;
 				std::stringstream out;
 				out << sys_time;
-				messageOut = out.str();
+				s = out.str();
+				messageOut = s;
             }
 
             // respond
             const char *message = messageOut.c_str();
             write (pipes[K2P][WRITE_END], message, strlen (message));
+       		
+       		waitingProcess->state=READY;
         }
-        waitingProcess->state = READY;
     }
 	
 	WRITE("Leaving read_req\n");
 
 }
 
-/*
+/*./
 ** stop the running process and index into the ISV to call the ISR
 */
 void ISR (int signum)
